@@ -65,16 +65,43 @@ create table pedidos(
 	id  integer primary key auto_increment,
     usuario_id integer,
     pagamento varchar(20) not null,
-    data_pedido date,
-    status_pedido varchar(50),
+    data_pedido date not null,
+    status_pedido varchar(50) not null,
+    -- ALTER TABLE pedidos,
+	-- ADD COLUMN preco_total DECIMAL(6, 2);
     
     foreign key(usuario_id) references usuario(id)
 );
+alter table pedidos drop column taxa_servico;
+
+DELIMITER //
+
+CREATE PROCEDURE atualizarPrecoTotal(IN pedido_id INT)
+BEGIN
+    UPDATE pedidos
+    SET preco_total = (
+        SELECT
+            COALESCE(SUM(produtos.preco * pedido_produto.quantidade), 0)
+        FROM
+            pedido_produto
+            JOIN produtos ON pedido_produto.id_produtos = produtos.id
+        WHERE
+            pedido_produto.id_pedidos = pedido_id
+    )
+    WHERE id = pedido_id;
+END //
+
+DELIMITER ;
+
+CALL atualizarPrecoTotal(1);
+
+DROP PROCEDURE IF EXISTS atualizarPrecoTotal;
 
 create table pedido_produto(
 	id integer primary key,
     id_produtos integer,
     id_pedidos integer,
+    quantidade integer,
     
     foreign key(id_produtos) references produtos(id),
     foreign key(id_pedidos) references pedidos(id)
