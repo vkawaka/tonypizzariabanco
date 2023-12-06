@@ -2,7 +2,7 @@ create schema tonypizzaria;
 use tonypizzaria;
 
 create table usuario(
-id integer primary key auto_increment,
+id integer primary key,
 nome varchar(255) not null,
 foto text,
 telefone varchar(20) not null,
@@ -11,7 +11,7 @@ senha varchar(30) check(char_length(senha) >= 8) not null
 );
 
 create table endereco(
-	id integer primary key auto_increment,
+	id integer primary key,
     id_usuario integer,
     rua text not null,
     bairro text not null,
@@ -23,7 +23,7 @@ create table endereco(
 );
 
 create table produtos(
-	id integer primary key auto_increment,
+	id integer primary key,
     nome varchar(50) not null,
     foto text not null,
     preco double not null,
@@ -34,7 +34,7 @@ create table produtos(
 );
 
 create table comentarios(
-	id integer primary key auto_increment,
+	id integer primary key,
     usuario_id integer,
     produtos_id integer,
     titulo varchar(200),
@@ -47,7 +47,7 @@ create table comentarios(
 );
 
 create table categorias(
-	id integer primary key auto_increment,
+	id integer primary key,
     nome varchar(100) not null,
     foto text not null
 );
@@ -62,7 +62,7 @@ create table possui(
 );
 
 create table pedidos(
-	id  integer primary key auto_increment,
+	id  integer primary key,
     usuario_id integer,
     pagamento varchar(20) not null,
     data_pedido date not null,
@@ -72,28 +72,9 @@ create table pedidos(
     
     foreign key(usuario_id) references usuario(id)
 );
+
+
 alter table pedidos drop column taxa_servico;
-
-DELIMITER //
-
-CREATE PROCEDURE atualizarPrecoTotal(IN pedido_id INT)
-BEGIN
-    UPDATE pedidos
-    SET preco_total = (
-        SELECT
-            COALESCE(SUM(produtos.preco * pedido_produto.quantidade), 0)
-        FROM
-            pedido_produto
-            JOIN produtos ON pedido_produto.id_produtos = produtos.id
-        WHERE
-            pedido_produto.id_pedidos = pedido_id
-    )
-    WHERE id = pedido_id;
-END //
-
-DELIMITER ;
-
-CALL atualizarPrecoTotal(1);
 
 DROP PROCEDURE IF EXISTS atualizarPrecoTotal;
 
